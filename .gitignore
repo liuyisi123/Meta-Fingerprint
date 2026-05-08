@@ -9,7 +9,7 @@ venv/
 .mypy_cache/
 runs/
 checkpoints/
-data/
+/data/
 *.pt
 *.pth
 *.ckpt

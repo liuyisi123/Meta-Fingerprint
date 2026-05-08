@@ -3,12 +3,12 @@
 PyTorch implementation of **Meta-Fingerprint: Physics-Grounded Vascular
 Disentanglement for Generalizable Cross-Domain Hemodynamic Monitoring**.
 
-This repository is prepared for anonymous review. It contains the model,
-training and evaluation code, structural-subspace calibration, preprocessing
-utilities, synthetic smoke tests, and documentation that maps the paper protocol
-to executable scripts. The clinical RWW cohort is not redistributed because it
-is governed by a data-use agreement; the repository provides the exact NPZ
-schema and split-manifest format needed to run the same code on approved data.
+This repository contains the model, training and evaluation code,
+structural-subspace calibration, preprocessing utilities, synthetic smoke
+tests, and documentation that maps the paper protocol to executable scripts.
+The clinical RWW cohort is not redistributed because it is governed by a
+data-use agreement; the repository provides the NPZ schema and split-manifest
+format needed to run the same code on approved data.
 
 ## What is implemented
 
@@ -21,14 +21,14 @@ schema and split-manifest format needed to run the same code on approved data.
 - **AdaIN waveform decoder**: `z_bp` supplies beat-level content and `z_id`
   modulates the ABP waveform envelope through channel-wise scale and shift.
 - **Risk phenotyping head**: configurable `num_classes`.
-  - `configs/default.yaml` / `configs/task_b_3class.yaml` — three-class
+  - `configs/default.yaml` / `configs/task_b_3class.yaml` - three-class
     Task-B for ICD-10 cohorts (MC-MED Setting-D): Hypotension / Normal /
     Hypertension.
-  - `configs/task_b_4class_abp.yaml` — four-class Task-B for ABP-equipped
+  - `configs/task_b_4class_abp.yaml` - four-class Task-B for ABP-equipped
     cohorts (Settings A-C, 2017 ACC/AHA thresholds): Hypotension / Normal /
     Pre-HTN / Hypertension.  Use `bp_scalar_labels_4class()` to generate
     labels for these cohorts.
-  - `configs/task_a_5class.yaml` — five-class ACC/AHA Task-A chronic staging
+  - `configs/task_a_5class.yaml` - five-class ACC/AHA Task-A chronic staging
     probe.
 - **SR-MAML / calibration**: deployment-time adaptation freezes shared modules
   and updates only the structural encoder.
@@ -82,8 +82,8 @@ schema and split-manifest format needed to run the same code on approved data.
 ## Installation
 
 ```bash
-git clone <anonymous-repo-url>
-cd meta_fingerprint_repo
+git clone https://github.com/liuyisi123/Meta-Fingerprint.git
+cd Meta-Fingerprint
 python -m venv .venv
 source .venv/bin/activate        # Windows: .venv\Scripts\activate
 python -m pip install --upgrade pip
@@ -157,13 +157,10 @@ from metafingerprint.data import bp_scalar_labels_4class
 labels = bp_scalar_labels_4class(abp_windows)  # [N, L] -> [N] in {0,1,2,3}
 ```
 
-For the ICD-10 MC-MED cohort (Setting-D, no ABP) use the three-class function
-with `configs/default.yaml` or `configs/task_b_3class.yaml`:
-
-```python
-from metafingerprint.data import bp_scalar_labels
-labels = bp_scalar_labels(abp_windows)  # [N, L] -> [N] in {0,1,2}
-```
+For the ICD-10 MC-MED cohort (Setting-D, no ABP), construct visit-level
+three-class labels from ICD-10 code families as described in
+`docs/data_access.md`, save them under the `labels` key, and use
+`configs/default.yaml` or `configs/task_b_3class.yaml`.
 
 The AAMI SP10 tolerance flags in evaluation output are valid only for
 ABP-equipped Settings A-B. Setting-C (RWW, CNAP reference) should be
@@ -255,9 +252,9 @@ range quality filter by default; pass `--no-quality-filter` only for debugging.
   private reviewer packages can add permitted split manifests, checkpoints,
   aggregate metrics, and rendered figures without changing the code layout.
 
-The anonymous review package does not contain private RWW signals or trained
+This public repository does not contain private RWW signals or trained
 checkpoints derived from restricted data. Checkpoints and aggregate artifacts can
-be added under `checkpoints/` and `artifacts/` for a private reviewer upload,
+be added under `checkpoints/` and `artifacts/` for a controlled reviewer upload,
 but raw private data should remain outside the repository.
 
 ## License

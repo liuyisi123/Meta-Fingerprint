@@ -1,8 +1,7 @@
 # Reproducibility Checklist
 
-This document aligns the repository with the manuscript's code-availability
-statement. It separates what a reviewer can run immediately from what requires
-controlled data access.
+This checklist separates commands that can be run immediately from analyses
+that require controlled data access.
 
 ## 1. Environment check
 
@@ -67,7 +66,7 @@ restricted artifacts can regenerate the final plots using scripts under
 `scripts/figures/`. A minimal aggregate plotting utility is provided as
 `scripts/figures/plot_metric_bar.py`.
 
-## 5. What is intentionally absent from the anonymous public repository
+## 5. What is intentionally absent from the public repository
 
 - Raw clinical waveforms.
 - RWW signals or subject-level metadata.
