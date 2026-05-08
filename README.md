@@ -1,7 +1,5 @@
 # Meta-Fingerprint
 
-[![Tests](https://github.com/liuyisi123/Meta-Fingerprint/actions/workflows/tests.yml/badge.svg)](https://github.com/liuyisi123/Meta-Fingerprint/actions/workflows/tests.yml)
-
 PyTorch implementation of **Meta-Fingerprint: Physics-Grounded Vascular
 Disentanglement for Generalizable Cross-Domain Hemodynamic Monitoring**.
 
@@ -106,7 +104,8 @@ allowed to be placed there.
 ## Installation
 
 ```bash
-git clone https://github.com/liuyisi123/Meta-Fingerprint.git
+# Anonymous review mirror:
+# https://anonymous.4open.science/r/Meta-Fingerprint-DF31/
 cd Meta-Fingerprint
 python -m venv .venv
 source .venv/bin/activate        # Windows: .venv\Scripts\activate
