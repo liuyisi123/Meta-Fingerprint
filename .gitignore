@@ -16,3 +16,9 @@ checkpoints/
 *.npz
 *.npy
 .DS_Store
+monitor/build/
+monitor/dist/
+monitor/reports/
+monitor/*.db
+monitor/*.sqlite
+monitor/*.sqlite3

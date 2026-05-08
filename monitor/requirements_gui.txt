@@ -1,0 +1,19 @@
+# Meta-Fingerprint Monitor GUI dependencies
+# Install: pip install -r requirements_gui.txt
+
+# GUI framework
+PyQt5>=5.15.0
+
+# Real-time signal plotting
+pyqtgraph>=0.13.0
+
+# Scientific computing (already needed by model)
+numpy>=1.23
+scipy>=1.10
+
+# PDF report generation
+reportlab>=4.0.0
+
+# Optional: full model inference
+# torch>=2.0        # uncomment if using trained model
+# PyYAML>=6.0       # uncomment if loading YAML configs

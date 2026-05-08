@@ -84,6 +84,7 @@ Dataset-specific notes are in `docs/data_access.md`.
 |-- examples/manifests/      # split and setting protocol CSV templates
 |-- scripts/                 # train/evaluate/calibrate/predict/preprocess CLIs
 |-- scripts/figures/         # aggregate-metric plotting utilities
+|-- monitor/                 # desktop host-computer prototype for review
 |-- src/metafingerprint/     # package source
 |   |-- data/                # NPZ loaders, preprocessing, synthetic data
 |   |-- models/              # HTD-SSM, latent encoder, decoder
@@ -254,23 +255,37 @@ No raw private RWW signals, restricted subject-level metadata, or checkpoints
 derived from restricted RWW support/query data are included in this public
 repository.
 
-## Planned Deployment Software
+## Host-Computer Monitor
 
-We plan to add a lightweight deployment package after the review version is
-frozen. The planned software will sit on top of the current backend and will
-not change the paper results.
+The repository includes a desktop host-computer prototype in `monitor/`. It
+provides ECG/PPG window review, live or simulated inference, LAN streaming,
+batch NPZ analysis, CSV export, and PDF research reports. The monitor is meant
+to make the deployment workflow visible to reviewers; it does not change the
+paper experiments.
 
-Planned modules:
+```mermaid
+flowchart LR
+    A["Acquisition client<br/>ECG/PPG windows"] --> B["monitor/ LAN server"]
+    B --> C["Meta-Fingerprint checkpoint<br/>or simulation mode"]
+    C --> D["Waveform, BP, phenotype,<br/>and warning panels"]
+    D --> E["CSV/PDF research export"]
+```
 
-- ECG/PPG window quality check and NPZ export.
-- Waveform reconstruction and scalar BP summary viewer.
-- Structural-subspace calibration interface for approved support/query data.
-- Confidence-warning visualization for deployment stress analysis.
-- Export of aggregate metrics suitable for `artifacts/` and figure scripts.
+Run the monitor:
 
-The deployment software is not a medical device and is not intended for
-clinical decision making. Until it is released, the command-line scripts in
-`scripts/` are the supported interface.
+```bash
+cd monitor
+python -m pip install -r requirements_gui.txt
+python main.py
+```
+
+On Windows, `monitor/run.bat` launches the same entry point. The full monitor
+notes, LAN message format, and executable-build instructions are in
+`monitor/README.md`.
+
+The monitor is not a medical device and is not intended for clinical decision
+making. AAMI SP10 flags apply only to ABP-equipped Settings A-B in the paper
+protocol; Setting-C is CNAP-referenced wearable transfer.
 
 ## Citation
 
