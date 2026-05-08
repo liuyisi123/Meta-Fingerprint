@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "metafingerprint"
+version = "0.1.0"
+description = "PyTorch implementation of Meta-Fingerprint for ECG-PPG hemodynamic monitoring."
+readme = "README.md"
+requires-python = ">=3.9"
+license = {text = "MIT"}
+authors = [{name = "Meta-Fingerprint contributors"}]
+dependencies = [
+  "numpy>=1.23",
+  "scipy>=1.10",
+  "torch>=2.0",
+  "PyYAML>=6.0",
+  "tqdm>=4.66",
+]
+
+[project.scripts]
+metafingerprint-train = "metafingerprint.cli:train_main"
+metafingerprint-evaluate = "metafingerprint.cli:evaluate_main"
+metafingerprint-synthetic = "metafingerprint.cli:synthetic_main"
+metafingerprint-calibrate = "metafingerprint.cli:calibrate_main"
+metafingerprint-predict = "metafingerprint.cli:predict_main"
+
+[project.optional-dependencies]
+metrics = ["scikit-learn>=1.3"]
+csv = ["pandas>=1.5"]
+dev = ["pytest>=7.0", "ruff>=0.5"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100

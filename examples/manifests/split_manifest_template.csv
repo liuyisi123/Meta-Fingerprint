@@ -1,0 +1,5 @@
+cohort,patient_id,window_id,split,setting,track,notes
+VitalDB,VDB_000001,VDB_000001_0000,train,source,Track-1+Track-2,example row
+VitalDB,VDB_000002,VDB_000002_0000,val,source,Track-1+Track-2,example row
+MIMIC-III-Ext-PPG,MIMIC_000001,MIMIC_000001_0000,test,Setting-A,Track-1+Track-2,example row
+RWW,RWW_000001,RWW_000001_0000,loso_query,Setting-C,Track-1+Track-2,restricted example

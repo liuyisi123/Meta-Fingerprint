@@ -1,0 +1,6 @@
+setting,source_cohort,target_cohort,reference,task_scope,target_labels_used_for_training,primary_metric,notes
+In-domain,VitalDB,VitalDB,invasive ABP,Track-1+Track-2,no,RMSE/Macro-F1,held-out source test split
+Setting-A,VitalDB,MIMIC-III-Ext-PPG,invasive ABP,Track-1+Track-2,no,RMSE/Macro-F1,external ABP-equipped transfer
+Setting-B,VitalDB,UCI,invasive ABP,Track-1+proxy Track-2,no,RMSE,proxy labels reported separately
+Setting-C,VitalDB,RWW,CNAP non-invasive reference,Track-1+proxy Track-2,calibration support only,RMSE,32-fold LOSO; not AAMI compliance
+Setting-D,VitalDB,MC-MED,no continuous ABP,zero-shot Track-2,no,Macro-F1,ED phenotyping only

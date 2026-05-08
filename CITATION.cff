@@ -1,0 +1,9 @@
+cff-version: 1.2.0
+title: "Meta-Fingerprint"
+message: "If you use this code, please cite the associated TPAMI manuscript."
+type: software
+authors:
+  - name: "Meta-Fingerprint contributors"
+version: 0.1.0
+license: MIT
+date-released: 2026-05-08

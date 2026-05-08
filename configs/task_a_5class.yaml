@@ -1,0 +1,61 @@
+model:
+  seq_len: 1250
+  fs: 125.0
+  input_channels: 2
+  local_dim: 64
+  encoder_dim: 128
+  ode_hidden_dim: 96
+  ode_steps: 2
+  ssm_hidden_dim: 128
+  tau_min: 0.100
+  tau_max: 0.400
+  z_id_dim: 64
+  z_bp_dim: 64
+  decoder_channels: 128
+  decoder_base_len: 64
+  num_classes: 5
+  dropout: 0.10
+  use_spectral_norm: true
+
+training:
+  seed: 42
+  epochs: 50
+  batch_size: 256
+  lr: 1.0e-3
+  weight_decay: 1.0e-4
+  min_lr: 1.0e-6
+  grad_clip_norm: 1.0
+  num_workers: 2
+  device: auto
+  amp: false
+  patience: 7
+  lambda_wave: 1.0
+  lambda_pheno: 0.3
+  lambda_dis: 0.1
+  dis_warmup_steps: 10000
+  huber_delta: 5.0
+  alpha_mi: 1.0
+  beta_tc: 4.0
+  gamma_mkl: 1.0
+  lambda_consistency: 0.5
+  consistency_margin: 0.9
+  meta: false
+  meta_frequency: 20
+  tasks_per_batch: 4
+  support_size: 4
+  query_size: 4
+  inner_steps: 3
+  inner_lr: 0.01
+  lambda_reg: 0.1
+  first_order: true
+  monitor: val_rmse
+  save_every: 0
+
+data:
+  target_fs: 125.0
+  window_sec: 10.0
+  normalize_inputs: true
+  normalize_abp: false
+  train_fraction: 0.60
+  val_fraction: 0.20
+  test_fraction: 0.20
