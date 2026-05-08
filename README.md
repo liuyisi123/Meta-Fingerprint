@@ -1,83 +1,107 @@
 # Meta-Fingerprint
 
+[![Tests](https://github.com/liuyisi123/Meta-Fingerprint/actions/workflows/tests.yml/badge.svg)](https://github.com/liuyisi123/Meta-Fingerprint/actions/workflows/tests.yml)
+
 PyTorch implementation of **Meta-Fingerprint: Physics-Grounded Vascular
 Disentanglement for Generalizable Cross-Domain Hemodynamic Monitoring**.
 
-This repository contains the model, training and evaluation code,
-structural-subspace calibration, preprocessing utilities, synthetic smoke
-tests, and documentation that maps the paper protocol to executable scripts.
-The clinical RWW cohort is not redistributed because it is governed by a
-data-use agreement; the repository provides the NPZ schema and split-manifest
-format needed to run the same code on approved data.
+Meta-Fingerprint is a research codebase for cross-domain cuffless
+hemodynamic monitoring from synchronized ECG and PPG. The repository includes
+the model implementation, training and evaluation scripts, structural-subspace
+calibration, preprocessing utilities, synthetic smoke tests, split-manifest
+templates, and reviewer-facing documentation. The private RWW wearable cohort
+is not redistributed because it is governed by a data-use agreement; the code
+uses the same NPZ schema and split format for public and approved private data.
 
-## What is implemented
+This release is intended to make the manuscript protocol executable, not to
+serve as a clinical device or diagnostic tool.
 
-- **HTD-SSM encoder**: Neural-ODE morphology front end, ECG-driven bounded
-  pulse-transit delay gate, fractional PPG delay interpolation, and a diagonal
-  state-space recurrence with linear sequence complexity.
-- **Structured TC-CVAE latent model**: `z_id` is the slowly varying structural
-  code and `z_bp` is the dynamic hemodynamic code. The loss implements feature
-  reconstruction, MI, TC, marginal KL, and same-patient temporal consistency.
-- **AdaIN waveform decoder**: `z_bp` supplies beat-level content and `z_id`
-  modulates the ABP waveform envelope through channel-wise scale and shift.
-- **Risk phenotyping head**: configurable `num_classes`.
-  - `configs/default.yaml` / `configs/task_b_3class.yaml` - three-class
-    Task-B for ICD-10 cohorts (MC-MED Setting-D): Hypotension / Normal /
-    Hypertension.
-  - `configs/task_b_4class_abp.yaml` - four-class Task-B for ABP-equipped
-    cohorts (Settings A-C, 2017 ACC/AHA thresholds): Hypotension / Normal /
-    Pre-HTN / Hypertension.  Use `bp_scalar_labels_4class()` to generate
-    labels for these cohorts.
-  - `configs/task_a_5class.yaml` - five-class ACC/AHA Task-A chronic staging
-    probe.
-- **SR-MAML / calibration**: deployment-time adaptation freezes shared modules
-  and updates only the structural encoder.
+## Model at a Glance
 
-## Repository layout
+```mermaid
+flowchart LR
+    A["ECG + PPG windows<br/>10 s, 125 Hz"] --> B["HTD-SSM encoder<br/>morphology + PTT delay"]
+    B --> C["Structured TC-CVAE<br/>z_id and z_bp"]
+    C --> D["AdaIN waveform decoder<br/>ABP reconstruction"]
+    C --> E["Risk phenotype head<br/>Task-A / Task-B"]
+    C --> F["SR-MAML calibration<br/>update z_id branch only"]
+```
+
+The implementation follows the paper structure:
+
+| Component | Code | Purpose |
+|---|---|---|
+| HTD-SSM encoder | `src/metafingerprint/models/htd_ssm.py` | ECG-PPG morphology encoding with bounded fractional delay |
+| Neural ODE front end | `src/metafingerprint/models/ode.py` | Local continuous-time morphology extraction |
+| Structured latent encoder | `src/metafingerprint/models/latents.py` | Separates `z_id` and `z_bp` through asymmetric routing |
+| AdaIN waveform decoder | `src/metafingerprint/models/decoder.py` | Reconstructs ABP with structural conditioning |
+| TC-CVAE losses | `src/metafingerprint/losses.py` | Reconstruction, MI, TC, marginal KL, temporal consistency |
+| SR-MAML calibration | `src/metafingerprint/adaptation.py` | Few-shot structural-branch adaptation |
+| Evaluation | `src/metafingerprint/evaluation.py` | Waveform, scalar BP, delay, and phenotype metrics |
+
+## Evaluation Protocol
+
+```mermaid
+flowchart TB
+    S["VitalDB<br/>source training"] --> ID["VitalDB held-out<br/>in-domain"]
+    S --> A["Setting-A<br/>MIMIC-III-Ext-PPG"]
+    S --> B["Setting-B<br/>UCI cuffless BP"]
+    S --> C["Setting-C<br/>RWW wearable, CNAP reference"]
+    S --> D["Setting-D<br/>MC-MED ED phenotyping"]
+```
+
+| Setting | Source | Target | Reference | Task scope | Reporting rule |
+|---|---|---|---|---|---|
+| In-domain | VitalDB | VitalDB held-out | invasive ABP | Track-1 + Track-2 | source test split |
+| Setting-A | VitalDB | MIMIC-III-Ext-PPG | invasive ABP | Track-1 + Track-2 | external ABP-equipped transfer |
+| Setting-B | VitalDB | UCI cuffless BP | invasive/reference BP waveform | Track-1 + proxy Track-2 | external transfer; proxy labels reported separately |
+| Setting-C | VitalDB | RWW | CNAP non-invasive reference | Track-1 + proxy Track-2 | 32-fold LOSO; not an AAMI compliance test |
+| Setting-D | VitalDB | MC-MED | no continuous ABP | zero-shot Track-2 | three-class ICD-10 ED phenotyping |
+
+AAMI-style scalar BP tolerance flags are meaningful only for ABP-equipped
+Settings A-B. Setting-C is reported as CNAP-referenced wearable transfer.
+
+## Public Data Sources
+
+The repository does not redistribute third-party datasets. Download each public
+dataset from its original source, follow its license, and convert the data to
+the NPZ format below.
+
+| Dataset | Manuscript role | Public access |
+|---|---|---|
+| VitalDB | sole training source and in-domain test | https://vitaldb.net |
+| MIMIC-III-Ext-PPG | Setting-A external ABP-equipped transfer | https://doi.org/10.13026/nmwb-6h34 |
+| UCI cuffless BP / PPG-BP | Setting-B external transfer | https://archive.ics.uci.edu/dataset/340/cuff+less+blood+pressure+estimation |
+| MC-MED | Setting-D zero-shot emergency-department phenotyping | https://doi.org/10.13026/jz99-4j81 |
+| RWW | private wearable/CNAP transfer | not redistributed; use only under approved data-use agreement |
+
+Dataset-specific notes are in `docs/data_access.md`.
+
+## Repository Layout
 
 ```text
 .
-|-- configs/
-|   |-- default.yaml              # paper-style 10 s / 125 Hz, Task-B 3-class (ICD-10)
-|   |-- task_b_3class.yaml        # Task-B 3-class for ICD-10 cohorts (MC-MED)
-|   |-- task_b_4class_abp.yaml    # Task-B 4-class for ABP-equipped cohorts (Settings A-C)
-|   |-- task_a_5class.yaml        # Task-A ACC/AHA 5-class phenotype head
-|   |-- debug.yaml                # fast CPU smoke-test config
-|   `-- synthetic.yaml            # small synthetic example config
-|-- docs/
-|   |-- data_access.md        # public/private data handling and RWW limits
-|   |-- paper_mapping.md      # equations/algorithms -> code mapping
-|   |-- result_artifacts.md   # expected artifacts for tables and figures
-|   `-- reproducibility.md    # reviewer reproduction checklist
-|-- examples/
-|   |-- README.md
-|   `-- manifests/
-|       |-- split_manifest_template.csv
-|       `-- setting_protocol_template.csv
-|-- scripts/
-|   |-- train.py
-|   |-- evaluate.py
-|   |-- calibrate.py
-|   |-- predict.py
-|   |-- prepare_npz_from_csv.py
-|   |-- make_synthetic_data.py
-|   |-- synthetic_smoke.py
-|   `-- figures/
-|       |-- README.md
-|       `-- plot_metric_bar.py
-|-- src/metafingerprint/
-|   |-- models/
-|   |-- data/
-|   |-- losses.py
-|   |-- adaptation.py
-|   |-- evaluation.py
-|   `-- train.py
-|-- splits/                 # optional review-safe split manifests
-|-- model_zoo/              # optional trained checkpoints when releasable
-|-- artifacts/              # aggregate metrics and prediction summaries
-|-- figures/                # generated figure outputs
-`-- tests/
+|-- configs/                 # paper-style and task-specific YAML configs
+|-- docs/                    # data access, paper mapping, reproducibility notes
+|-- examples/manifests/      # split and setting protocol CSV templates
+|-- scripts/                 # train/evaluate/calibrate/predict/preprocess CLIs
+|-- scripts/figures/         # aggregate-metric plotting utilities
+|-- src/metafingerprint/     # package source
+|   |-- data/                # NPZ loaders, preprocessing, synthetic data
+|   |-- models/              # HTD-SSM, latent encoder, decoder
+|   |-- losses.py            # TC-CVAE and task losses
+|   |-- adaptation.py        # structural-subspace calibration
+|   `-- evaluation.py        # metric computation
+|-- artifacts/               # aggregate metrics only, no raw private data
+|-- figures/                 # generated figure outputs
+|-- model_zoo/               # releasable checkpoints, if permitted
+|-- splits/                  # review-safe split manifests
+`-- tests/                   # unit and smoke tests
 ```
+
+The small README files in `artifacts/`, `figures/`, `model_zoo/`, and `splits/`
+are intentional. They keep the directories visible in Git and document what is
+allowed to be placed there.
 
 ## Installation
 
@@ -93,31 +117,31 @@ pip install -e .[dev,csv,metrics]
 For CUDA training, install the PyTorch build matching your CUDA version before
 installing the project.
 
-## Reviewer quick start
+## Quick Start
 
-Run the synthetic smoke test:
+Run a synthetic smoke test:
 
 ```bash
 python scripts/synthetic_smoke.py --out runs/smoke
 ```
 
-Run the unit tests:
+Run unit tests:
 
 ```bash
 pytest -q
 ```
 
-The smoke test creates a tiny synthetic ECG/PPG/ABP dataset, trains one CPU
+The smoke test creates a small synthetic ECG/PPG/ABP dataset, trains one CPU
 epoch with `configs/debug.yaml`, writes a checkpoint, and reports waveform,
-classification, and delay metrics. It is not intended to reproduce paper
-numbers.
+classification, and delay metrics. It is a code-path check; it does not
+reproduce the manuscript numbers.
 
-## Data format
+## Data Format
 
 The loader accepts either a directory with `train.npz`, optional `val.npz` and
 `test.npz`, or a single NPZ with a `split` key. The paper protocol uses
-non-overlapping **10-second windows at 125 Hz**, so the default sequence length
-is `L = 1250`.
+non-overlapping 10-second windows at 125 Hz, so the default sequence length is
+`L = 1250`.
 
 Recommended NPZ format:
 
@@ -147,29 +171,25 @@ np.savez_compressed(
 )
 ```
 
-### Generating Task-B labels
+### Task Labels
 
-For ABP-equipped cohorts (VitalDB, MIMIC-III, UCI, RWW) use the four-class
-function with `configs/task_b_4class_abp.yaml`:
+For ABP-equipped cohorts (VitalDB, MIMIC-III-Ext-PPG, UCI, RWW), use the
+four-class Task-B configuration:
 
 ```python
 from metafingerprint.data import bp_scalar_labels_4class
+
 labels = bp_scalar_labels_4class(abp_windows)  # [N, L] -> [N] in {0,1,2,3}
 ```
 
-For the ICD-10 MC-MED cohort (Setting-D, no ABP), construct visit-level
-three-class labels from ICD-10 code families as described in
-`docs/data_access.md`, save them under the `labels` key, and use
-`configs/default.yaml` or `configs/task_b_3class.yaml`.
+For MC-MED (Setting-D, no ABP waveform), construct visit-level three-class
+labels from ICD-10 code families as described in `docs/data_access.md`, save
+them under the `labels` key, and use `configs/default.yaml` or
+`configs/task_b_3class.yaml`.
 
-The AAMI SP10 tolerance flags in evaluation output are valid only for
-ABP-equipped Settings A-B. Setting-C (RWW, CNAP reference) should be
-reported as CNAP-referenced wearable transfer, not as AAMI compliance.
+## Training and Evaluation
 
-Detailed preprocessing, split, and data-access notes are in
-`docs/data_access.md`.
-
-## Training on the paper-style source cohort
+Train on the source cohort:
 
 ```bash
 python scripts/train.py \
@@ -179,18 +199,7 @@ python scripts/train.py \
   --device cuda:0
 ```
 
-Outputs:
-
-```text
-runs/vitaldb_metafingerprint/
-|-- best.pt
-|-- last.pt
-|-- config.yaml
-|-- history.json
-`-- train_stats.json
-```
-
-## Evaluation
+Evaluate on an external target cohort:
 
 ```bash
 python scripts/evaluate.py \
@@ -200,14 +209,7 @@ python scripts/evaluate.py \
   --device cuda:0
 ```
 
-The evaluator reports waveform MAE/RMSE/correlation, SBP/DBP/MAP errors,
-Bland-Altman/AAMI-style scalar BP tolerance flags, Macro-F1/AUROC when labels
-are available, and delay statistics. AAMI-style flags should be interpreted
-only for ABP-equipped Settings A-B, matching the manuscript.
-
-## Structural-subspace calibration
-
-For a held-out subject, prepare disjoint support and query NPZ files:
+Evaluate a held-out subject with structural-subspace calibration:
 
 ```bash
 python scripts/calibrate.py \
@@ -219,11 +221,10 @@ python scripts/calibrate.py \
   --inner-lr 0.01
 ```
 
-The calibration routine deep-copies the trained model, freezes every module
-except `model.structural_encoder`, and updates only that branch using support
-ABP waveform loss plus the structural-anchor regularizer.
+Support and query windows must be disjoint. The calibration routine freezes
+the shared modules and updates only `model.structural_encoder`.
 
-## CSV conversion
+## CSV to NPZ Conversion
 
 ```bash
 python scripts/prepare_npz_from_csv.py \
@@ -240,22 +241,42 @@ Required CSV columns are `ecg` and `ppg`. Optional columns are `abp`,
 filter before resampling. It also applies a basic finite/flat-line/pressure
 range quality filter by default; pass `--no-quality-filter` only for debugging.
 
-## Paper reproducibility
+## Documentation for Reviewers
 
-- `docs/reproducibility.md` gives the reviewer-facing reproduction checklist.
-- `docs/paper_mapping.md` maps paper equations, algorithms, and claims to code.
-- `docs/result_artifacts.md` lists expected metric/figure artifacts and which
-  paper table or figure they support.
-- `examples/manifests/` contains CSV schemas for public split manifests and
-  Setting A-D protocol metadata.
-- `splits/`, `model_zoo/`, `artifacts/`, and `figures/` contain README files so
-  private reviewer packages can add permitted split manifests, checkpoints,
-  aggregate metrics, and rendered figures without changing the code layout.
+| File | Purpose |
+|---|---|
+| `docs/data_access.md` | cohort roles, data-use limits, label conventions |
+| `docs/reproducibility.md` | commands for public and controlled-access reproduction |
+| `docs/paper_mapping.md` | mapping from manuscript components to source files |
+| `docs/result_artifacts.md` | expected aggregate artifacts for tables and figures |
+| `examples/manifests/` | split and Setting A-D protocol templates |
 
-This public repository does not contain private RWW signals or trained
-checkpoints derived from restricted data. Checkpoints and aggregate artifacts can
-be added under `checkpoints/` and `artifacts/` for a controlled reviewer upload,
-but raw private data should remain outside the repository.
+No raw private RWW signals, restricted subject-level metadata, or checkpoints
+derived from restricted RWW support/query data are included in this public
+repository.
+
+## Planned Deployment Software
+
+We plan to add a lightweight deployment package after the review version is
+frozen. The planned software will sit on top of the current backend and will
+not change the paper results.
+
+Planned modules:
+
+- ECG/PPG window quality check and NPZ export.
+- Waveform reconstruction and scalar BP summary viewer.
+- Structural-subspace calibration interface for approved support/query data.
+- Confidence-warning visualization for deployment stress analysis.
+- Export of aggregate metrics suitable for `artifacts/` and figure scripts.
+
+The deployment software is not a medical device and is not intended for
+clinical decision making. Until it is released, the command-line scripts in
+`scripts/` are the supported interface.
+
+## Citation
+
+If you use this code, please cite the associated Meta-Fingerprint manuscript.
+The software citation metadata are provided in `CITATION.cff`.
 
 ## License
 

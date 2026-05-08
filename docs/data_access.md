@@ -4,15 +4,15 @@ This repository does not redistribute clinical waveforms. It provides the
 preprocessing code, NPZ schema, split-manifest templates, and executable model
 pipeline used by the manuscript.
 
-## Cohort roles
+## Cohort roles and access links
 
-| Cohort | Manuscript role | Repository status |
+| Cohort | Manuscript role | Access |
 |---|---|---|
-| VitalDB | Sole training source; in-domain test | User downloads from the public source and converts to NPZ |
-| MIMIC-III-Ext-PPG | Setting-A external ABP-equipped transfer | User downloads from PhysioNet and converts to NPZ |
-| UCI cuffless BP | Setting-B external ABP-equipped transfer | User downloads public data and converts to NPZ |
-| MC-MED | Setting-D zero-shot ED phenotyping | User downloads from PhysioNet; no ABP waveform |
-| RWW | Setting-C private wearable/CNAP transfer | Not redistributed; available only under data-use agreement |
+| VitalDB | Sole training source; in-domain test | https://vitaldb.net |
+| MIMIC-III-Ext-PPG | Setting-A external ABP-equipped transfer | https://doi.org/10.13026/nmwb-6h34 |
+| UCI cuffless BP / PPG-BP | Setting-B external ABP-equipped transfer | https://archive.ics.uci.edu/dataset/340/cuff+less+blood+pressure+estimation |
+| MC-MED | Setting-D zero-shot ED phenotyping | https://doi.org/10.13026/jz99-4j81 |
+| RWW | Setting-C private wearable/CNAP transfer | Not redistributed; available only under approved data-use agreement |
 
 ## Windowing and sampling
 
